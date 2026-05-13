@@ -34,8 +34,7 @@ td.cell.tick{border-left:1px solid #d0d0d0}
 .bar.hi,.dot.hi{filter:brightness(1.08) saturate(1.1)}
 svg.dep{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible}
 .hint{font-size:10px;color:#aaa;margin-top:8px}
-.hint span.red{color:#e03e3e}
-.hint span.grn{color:#1a8a5a}
+.hint span.org{color:#e09020}
 </style>
 </head>
 <body>
@@ -44,6 +43,14 @@ svg.dep{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:non
   <span class="leg"><span class="leg-sq" style="background:#2eaa72"></span>Engage Cros</span>
   <span class="leg"><span class="leg-sq" style="background:#e06030"></span>CRS（Laravel）</span>
   <span class="leg"><span class="leg-sq" style="background:#7c6fcd"></span>Sprocket（Bチーム）</span>
+  <span class="leg">
+    <svg width="28" height="12"><line x1="0" y1="6" x2="28" y2="6" stroke="#999" stroke-width="1.5"/><polygon points="24,3 28,6 24,9" fill="#999"/></svg>
+    依存関係
+  </span>
+  <span class="leg">
+    <svg width="28" height="12"><line x1="0" y1="6" x2="28" y2="6" stroke="#e09020" stroke-width="1.5" stroke-dasharray="4 2"/><polygon points="24,3 28,6 24,9" fill="#e09020"/></svg>
+    翌日連携
+  </span>
 </div>
 <div class="chart">
   <table id="gtable">
@@ -54,7 +61,7 @@ svg.dep{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:non
     <tbody id="tbody"></tbody>
   </table>
 </div>
-<p class="hint">処理名にホバーすると依存関係を表示。<span class="red">赤</span>=後処理　<span class="grn">緑</span>=前処理</p>
+<p class="hint">処理名にホバーすると依存関係を表示。<span class="org">オレンジ点線</span>=翌日連携</p>
 
 <script>
 const SLOTS=48;
@@ -62,31 +69,33 @@ const envColor={"DataStudio":"#4a90d9","Engage Cros":"#2eaa72","CRS（Laravel）
 const sl=(h,m)=>h*2+(m>=30?1:0);
 
 const procs=[
-  {id:"1-1",name:"顧客データ取込",             env:"DataStudio",    person:"松本",    time:"火・金 1:00〜2:00",    start:sl(1,0),  end:sl(2,0),  dot:false},
-  {id:"1-2",name:"購読解除データ取込",           env:"DataStudio",    person:"松本",    time:"月〜金 3:00〜3:30",    start:sl(3,0),  end:sl(3,30), dot:false},
-  {id:"1-3",name:"バウンスデータ取込",            env:"DataStudio",    person:"松本",    time:"月初木曜 7:30〜8:00",  start:sl(7,30), end:sl(8,0),  dot:false},
-  {id:"2-1",name:"顧客データ→SFTP（LINE用）",  env:"DataStudio",    person:"竹政",    time:"毎日 3:30〜4:30",      start:sl(3,30), end:sl(4,30), dot:false},
-  {id:"5-2",name:"配信結果→SFTP",              env:"Engage Cros",   person:"竹政",    time:"毎日 4:00",             start:sl(4,0),  end:sl(4,0),  dot:true},
-  {id:"5-3",name:"SFTP→Engage Cros（配信結果）",env:"Engage Cros",  person:"竹政",    time:"毎日 5:00",             start:sl(5,0),  end:sl(5,0),  dot:true},
-  {id:"2-2",name:"配信結果→SDS",               env:"DataStudio",    person:"竹政",    time:"毎日 5:00",             start:sl(5,0),  end:sl(5,0),  dot:true},
-  {id:"1-4",name:"顧客データ更新（Spanner連携用）",env:"DataStudio", person:"松本",    time:"毎日 7:00",             start:sl(7,0),  end:sl(7,0),  dot:true},
-  {id:"5-1",name:"SFTP→Engage Cros（顧客）",   env:"Engage Cros",   person:"竹政",    time:"毎日 7:00",             start:sl(7,0),  end:sl(7,0),  dot:true},
-  {id:"1-5",name:"ステータスチェック",            env:"DataStudio",    person:"松本",    time:"毎日 7:30",             start:sl(7,30), end:sl(7,30), dot:true},
-  {id:"4-1",name:"Spanner連携",                 env:"Sprocket",      person:"Bチーム", time:"毎時:30",               start:sl(7,30), end:sl(7,30), dot:true},
-  {id:"5-4",name:"レコード数確認エクスポート",     env:"Engage Cros",   person:"竹政",    time:"毎日 10:00",            start:sl(10,0), end:sl(10,0), dot:true},
-  {id:"6-1",name:"リッチメニューマスター→S3",    env:"CRS（Laravel）",person:"國忠",    time:"毎日 10:15",            start:sl(10,0), end:sl(10,0), dot:true},
-  {id:"3-1",name:"リッチメニュー割当決定",         env:"DataStudio",    person:"國忠",    time:"毎日 11:00",            start:sl(11,0), end:sl(11,0), dot:true},
-  {id:"6-2",name:"リッチメニュー→LINE反映",      env:"CRS（Laravel）",person:"國忠",    time:"毎日 12:00",            start:sl(12,0), end:sl(12,0), dot:true},
+  {id:"1-1",name:"顧客データ取込",                env:"DataStudio",    person:"松本",    time:"火・金 1:00〜2:00",   start:sl(1,0),  end:sl(2,0),  dot:false},
+  {id:"1-2",name:"購読解除データ取込",              env:"DataStudio",    person:"松本",    time:"月〜金 3:00〜3:30",   start:sl(3,0),  end:sl(3,30), dot:false},
+  {id:"1-3",name:"バウンスデータ取込",               env:"DataStudio",    person:"松本",    time:"月初木曜 7:30〜8:00", start:sl(7,30), end:sl(8,0),  dot:false},
+  {id:"2-1",name:"顧客データ→SFTP（LINE用）",     env:"DataStudio",    person:"竹政",    time:"毎日 3:30〜4:30",     start:sl(3,30), end:sl(4,30), dot:false},
+  {id:"5-2",name:"配信結果→SFTP",                 env:"Engage Cros",   person:"竹政",    time:"毎日 4:00",           start:sl(4,0),  end:sl(4,0),  dot:true},
+  {id:"5-3",name:"SFTP→Engage Cros（配信結果）", env:"Engage Cros",   person:"竹政",    time:"毎日 5:00",           start:sl(5,0),  end:sl(5,0),  dot:true},
+  {id:"2-2",name:"配信結果→SDS",                  env:"DataStudio",    person:"竹政",    time:"毎日 5:00",           start:sl(5,0),  end:sl(5,0),  dot:true},
+  {id:"1-4",name:"顧客データ更新（Spanner連携用）", env:"DataStudio",    person:"松本",    time:"毎日 7:00",           start:sl(7,0),  end:sl(7,0),  dot:true},
+  {id:"5-1",name:"SFTP→Engage Cros（顧客）",     env:"Engage Cros",   person:"竹政",    time:"毎日 7:00",           start:sl(7,0),  end:sl(7,0),  dot:true},
+  {id:"1-5",name:"ステータスチェック",               env:"DataStudio",    person:"松本",    time:"毎日 8:30",           start:sl(8,30), end:sl(8,30), dot:true},
+  {id:"4-1",name:"Spanner連携",                    env:"Sprocket",      person:"Bチーム", time:"毎時:30",             start:sl(7,30), end:sl(7,30), dot:true},
+  {id:"5-4",name:"レコード数確認エクスポート",        env:"Engage Cros",   person:"竹政",    time:"毎日 10:00",          start:sl(10,0), end:sl(10,0), dot:true},
+  {id:"6-1",name:"リッチメニューマスター→S3",       env:"CRS（Laravel）",person:"國忠",    time:"毎日 10:15",          start:sl(10,0), end:sl(10,0), dot:true},
+  {id:"3-1",name:"リッチメニュー割当決定",            env:"DataStudio",    person:"國忠",    time:"毎日 11:00",          start:sl(11,0), end:sl(11,0), dot:true},
+  {id:"6-2",name:"リッチメニュー→LINE反映",         env:"CRS（Laravel）",person:"國忠",    time:"毎日 12:00",          start:sl(12,0), end:sl(12,0), dot:true},
 ];
 
 const deps=[
-  {from:"1-1",to:"2-1"},{from:"1-2",to:"2-1"},{from:"1-3",to:"2-1"},
+  {from:"1-1",to:"2-1"},
+  {from:"1-2",to:"2-1"},
+  {from:"1-3",to:"2-1",nextDay:true},
   {from:"1-1",to:"1-4"},
   {from:"1-1",to:"1-5"},{from:"1-2",to:"1-5"},{from:"1-3",to:"1-5"},
   {from:"5-2",to:"5-3"},{from:"5-3",to:"2-2"},
   {from:"2-1",to:"5-1"},
   {from:"1-4",to:"4-1"},
-  {from:"6-1",to:"3-1"},{from:"3-1",to:"6-2"},
+  {from:"1-1",to:"3-1"},{from:"6-1",to:"3-1"},{from:"3-1",to:"6-2"},
 ];
 
 const hourRow=document.getElementById("hour-row");
@@ -135,16 +144,17 @@ window.addEventListener("load",()=>{
   const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
   svg.setAttribute("class","dep");
   svg.innerHTML=`<defs>
-    <marker id="ma-red" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-      <path d="M2 1L8 5L2 9" fill="none" stroke="#e03e3e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <marker id="ma-gry" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
     </marker>
-    <marker id="ma-grn" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-      <path d="M2 1L8 5L2 9" fill="none" stroke="#1a8a5a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <marker id="ma-org" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#e09020" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
     </marker>
   </defs>`;
 
   const pathEls=[];
-  deps.forEach(({from,to})=>{
+
+  deps.forEach(({from,to,nextDay})=>{
     const fromRow=rowMap[from],toRow=rowMap[to];
     if(!fromRow||!toRow)return;
     const fp=procs.find(p=>p.id===from);
@@ -163,19 +173,37 @@ window.addEventListener("load",()=>{
     const x2=tc.left-tRect.left+tc.width/2;
     const y2=tc.top-tRect.top+tc.height/2;
     const cy=(y1+y2)/2;
+
     const path=document.createElementNS("http://www.w3.org/2000/svg","path");
     path.setAttribute("d",`M${x1},${y1} C${x1},${cy} ${x2},${cy} ${x2},${y2}`);
     path.setAttribute("fill","none");
-    path.setAttribute("stroke","#e03e3e");
+    path.setAttribute("stroke", nextDay?"#e09020":"#888");
     path.setAttribute("stroke-width","1.8");
-    path.setAttribute("stroke-dasharray","4 2");
-    path.setAttribute("marker-end","url(#ma-red)");
+    if(nextDay) path.setAttribute("stroke-dasharray","4 2");
+    path.setAttribute("marker-end", nextDay?"url(#ma-org)":"url(#ma-gry)");
     path.setAttribute("opacity","0");
     path.dataset.from=from;
     path.dataset.to=to;
     svg.appendChild(path);
-    pathEls.push({el:path,from,to});
+
+    if(nextDay){
+      const label=document.createElementNS("http://www.w3.org/2000/svg","text");
+      label.setAttribute("x",(x1+x2)/2+4);
+      label.setAttribute("y",cy-4);
+      label.setAttribute("font-size","9");
+      label.setAttribute("fill","#e09020");
+      label.setAttribute("font-family","Arial");
+      label.setAttribute("opacity","0");
+      label.dataset.label="nextday";
+      label.dataset.from=from;
+      label.dataset.to=to;
+      label.textContent="翌日";
+      svg.appendChild(label);
+    }
+
+    pathEls.push({el:path,from,to,nextDay:!!nextDay});
   });
+
   tbodyEl.style.position="relative";
   tbodyEl.appendChild(svg);
 
@@ -195,18 +223,18 @@ window.addEventListener("load",()=>{
         bars.forEach(b=>{b.classList.add("dim");b.classList.remove("hi")});
       }
     });
-    pathEls.forEach(({el,from,to})=>{
-      if(from===id&&tos.includes(to)){
-        el.setAttribute("stroke","#e03e3e");
-        el.setAttribute("marker-end","url(#ma-red)");
-        el.setAttribute("opacity","1");
-      }else if(to===id&&froms.includes(from)){
-        el.setAttribute("stroke","#1a8a5a");
-        el.setAttribute("marker-end","url(#ma-grn)");
+    pathEls.forEach(({el,from,to,nextDay})=>{
+      const isActive=(from===id&&tos.includes(to))||(to===id&&froms.includes(from));
+      if(isActive){
         el.setAttribute("opacity","1");
       }else{
         el.setAttribute("opacity","0");
       }
+    });
+    svg.querySelectorAll("text[data-label='nextday']").forEach(lbl=>{
+      const lf=lbl.dataset.from,lt=lbl.dataset.to;
+      const isActive=(lf===id&&tos.includes(lt))||(lt===id&&froms.includes(lf));
+      lbl.setAttribute("opacity",isActive?"1":"0");
     });
   }
 
@@ -216,6 +244,7 @@ window.addEventListener("load",()=>{
       getBars(tr).forEach(b=>{b.classList.remove("dim");b.classList.remove("hi")});
     });
     pathEls.forEach(({el})=>el.setAttribute("opacity","0"));
+    svg.querySelectorAll("text[data-label='nextday']").forEach(lbl=>lbl.setAttribute("opacity","0"));
   }
 
   Object.entries(rowMap).forEach(([id,tr])=>{
